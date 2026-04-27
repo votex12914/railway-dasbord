@@ -1,6 +1,6 @@
 FROM python:3.10-bullseye
 
-# Install system dependencies (fixed Java issue)
+# Install dependencies (Java fixed)
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -9,24 +9,25 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Set Java env (important for Minecraft)
+# Set Java environment
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ENV PATH=$JAVA_HOME/bin:$PATH
 
 # Set working directory
 WORKDIR /app
 
-# Clone Crafty Controller
+# Clone Crafty
 RUN git clone https://gitlab.com/crafty-controller/crafty-4.git .
 
-# Install Python requirements
+# Install Python deps
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Create required folders (prevents crash)
+# Fix permissions (important)
 RUN mkdir -p /app/app/config /app/app/servers /app/app/backups
+RUN chmod -R 777 /app
 
-# Expose Crafty panel port
+# Expose port
 EXPOSE 8000
 
-# Start Crafty
-CMD ["python3", "main.py"]
+# FIXED START (this solves stuck issue)
+CMD ["sh", "-c", "python3 main.py --host 0.0.0.0 --port ${PORT:-8000}"]
